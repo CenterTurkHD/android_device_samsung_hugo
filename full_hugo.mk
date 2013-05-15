@@ -24,13 +24,13 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 $(call inherit-product, device/samsung/galaxysl/galaxysl.mk)
 $(call inherit-product, build/target/product/full.mk)
 
-# Galaxy SL uses high-density artwork where available
+# Galaxy Player 4.2 (hugo) uses high-density artwork where available
 PRODUCT_LOCALES += hdpi
 
 PRODUCT_BUILD_PROP_OVERRIDES += BUILD_UTC_DATE=0
 # Discard inherited values and use our own instead.
-PRODUCT_NAME := full_galaxysl
-PRODUCT_DEVICE := galaxysl
+PRODUCT_NAME := full_hugo
+PRODUCT_DEVICE := hugo
 PRODUCT_BRAND := samsung
 PRODUCT_MANUFACTURER := samsung
-PRODUCT_MODEL := GT-I9003
+PRODUCT_MODEL := YP-GI1
