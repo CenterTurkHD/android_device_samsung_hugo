@@ -2,13 +2,13 @@
 $(call inherit-product, vendor/cm/config/gsm.mk)
 
 # Release name
-PRODUCT_RELEASE_NAME := SGSL
+PRODUCT_RELEASE_NAME := SGP
 
 # Inherit some common CM stuff.
 $(call inherit-product, vendor/cm/config/common_full_phone.mk)
 
 # Inherit device configuration
-$(call inherit-product, device/samsung/galaxysl/full_galaxysl.mk)
+$(call inherit-product, device/samsung/hugo/full_hugo.mk)
 
 ## Device identifier. This must come after all inclusions
 PRODUCT_DEVICE := hugo
