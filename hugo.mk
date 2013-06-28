@@ -128,6 +128,7 @@ PRODUCT_COPY_FILES += \
 
 # Packages
 PRODUCT_PACKAGES := \
+    libcamera \
     overlay.latona \
     lights.latona \
 	com.android.future.usb.accessory \
