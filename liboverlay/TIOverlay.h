@@ -25,6 +25,13 @@
 #include "overlay_common.h"
 #include "v4l2_utils.h"
 
+#define TIOVERLAY_DEBUGGING 1
+#if TIOVERLAY_DEBUGGING
+#define TIOVERLAY_PRINT(arg1,arg2...) LOGD(arg1,## arg2)
+#else
+#define TIOVERLAY_PRINT(arg1,arg2...)
+#endif
+
 #define OVERLAY_DATA_MARKER  (0x68759746) // OVRLYSHM on phone keypad
 
 /** this structure represents
@@ -57,6 +64,7 @@ public:
         alpha = 0;
         zorder = 3;
         panel = 0x0;
+        mirror = 0x0;
     };
 public:
   uint32_t posX;
@@ -68,6 +76,7 @@ public:
   uint32_t alpha;
   uint32_t zorder;
   uint32_t panel;
+  uint32_t mirror;
 } ;
 
 class overlay_data_t {
@@ -180,9 +189,7 @@ public:
 
     static int overlay_get(struct overlay_control_device_t *dev, int name);
     static overlay_t* overlay_createOverlay(struct overlay_control_device_t *dev,
-            uint32_t w, uint32_t h, int32_t  format,int isS3D);
-    static overlay_t* overlay_createOverlay(struct overlay_control_device_t *dev,
-                                            uint32_t w, uint32_t h, int32_t  format);
+            uint32_t w, uint32_t h, int32_t  format);
     static void overlay_destroyOverlay(struct overlay_control_device_t *dev,
                                        overlay_t* overlay);
     static int overlay_setPosition(struct overlay_control_device_t *dev,

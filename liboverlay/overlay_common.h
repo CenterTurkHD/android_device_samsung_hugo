@@ -64,7 +64,7 @@
 #define CACHEABLE_BUFFERS 0x1
 #define MAINTAIN_COHERENCY 0x2
 #define OPTIMAL_QBUF_CNT    0x4
-#define MIRRORING 0x8
+//#define MIRRORING 0x8
 
 #define CHECK_CAMERA 0x10
 #ifdef TARGET_OMAP4

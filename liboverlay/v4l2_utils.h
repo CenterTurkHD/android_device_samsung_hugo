@@ -46,8 +46,8 @@ int v4l2_overlay_set_crop(int fd, uint32_t x, uint32_t y, uint32_t w,
                               uint32_t h);
 int v4l2_overlay_get_crop(int fd, uint32_t *x, uint32_t *y, uint32_t *w,
                               uint32_t *h);
-int v4l2_overlay_set_rotation(int fd, int degree, int step);
-int v4l2_overlay_get_rotation(int fd, int* degree, int step);
+int v4l2_overlay_set_rotation(int fd, int degree, int step, uint32_t mirror);
+int v4l2_overlay_get_rotation(int fd, int* degree, int step, uint32_t* mirror);   // chk
 int v4l2_overlay_set_colorkey(int fd, int enable, int colorkey);
 int v4l2_overlay_set_global_alpha(int fd, int enable, int alpha);
 int v4l2_overlay_set_local_alpha(int fd, int enable);
@@ -74,6 +74,5 @@ typedef struct
 */
 #define V4L2_CID_TI_DISPC_OVERLAY 0x08000000
 #define ALL_BUFFERS_FLUSHED -66
-#define V4L2_CID_ROTATE         0x00980900 + 34  //(V4L2_CID_BASE+34)
 
 #endif  // ANDROID_ZOOM_REPO_HARDWARE_TI_OMAP3_LIBOVERLAY_V4L2_UTILS_H_
