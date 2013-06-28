@@ -37,7 +37,8 @@ namespace android {
 #define SLOWMOTION4SKIP       3
 #define SLOWMOTION8SKIP       7
 
-#if OMAP_SCALE
+#define MIRROR_TEST	// 2011.06.29 Jinokang
+#ifdef MIRROR_TEST	// 2011.06.29 Jinokang
 #define CAMERA_FLIP_NONE			 1
 #define CAMERA_FLIP_MIRROR			 2
 #define CAMERA_FLIP_WATER			 3
@@ -132,7 +133,7 @@ s_fmt_fail:
 
 		LOG_FUNCTION_NAME   
 
-		framerate = mParameters.getPreviewFrameRate();		
+		framerate = mParameters.getPreviewFrameRate();
         HAL_PRINT("setPreviewFrameRate: framerate=%d\n",framerate);
 
 		if(mCameraIndex == MAIN_CAMERA)
@@ -315,7 +316,7 @@ s_fmt_fail:
 		int fwidth, fheight;
 		int zoom_left,zoom_top,zoom_width, zoom_height,w,h;
 		int ret;
-		LOGD("In ZoomPerform %d",zoom);
+		HAL_PRINT("In ZoomPerform %d",zoom);
 
 		if (zoom < 1) 
 			zoom = 1;
@@ -451,9 +452,9 @@ s_fmt_fail:
 			return -1;
 		}
 		
-#if OMAP_SCALE
+#ifdef MIRROR_TEST	// 2011.07.11 Jinokang
         if(mCameraIndex == VGA_CAMERA && mCamMode != VT_MODE) {
-            if(orientation == 0 || orientation == 180) {
+           if(orientation == 90 || orientation == 270) {			//if(orientation == 90 || orientation == 270) {
                 struct v4l2_control vc;            
                 CLEAR(vc);
                 vc.id = V4L2_CID_FLIP;                
@@ -466,12 +467,16 @@ s_fmt_fail:
         }
 #endif  
 
+#if 0	// 2012.01.07 Jino.Kang
 		/* Shutter CallBack */
-		if(mMsgEnabled & CAMERA_MSG_SHUTTER)
-		{
-			mNotifyCb(CAMERA_MSG_SHUTTER,0,0,mCallbackCookie);
+		if(mPreviousSceneMode !=9 && mPreviousSceneMode !=11){
+			if(mMsgEnabled & CAMERA_MSG_SHUTTER)
+			{
+				HAL_PRINT("normal CAMERA_MSG_SHUTTER\n");
+				mNotifyCb(CAMERA_MSG_SHUTTER,0,0,mCallbackCookie);
+			} 
 		} 
-
+#endif
 		/* Check if the camera driver can accept 1 buffer */
 		creqbuf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		creqbuf.memory = V4L2_MEMORY_USERPTR;
@@ -492,7 +497,7 @@ s_fmt_fail:
 
 		buffer.m.userptr = base;
 		mPictureBuffer = new MemoryBase(mPictureHeap, offset, buffer.length);
-		LOGD("Picture Buffer: Base = %p Offset = 0x%x\n", (void *)base, (unsigned int)offset);
+		HAL_PRINT("Picture Buffer: Base = %p Offset = 0x%x\n", (void *)base, (unsigned int)offset);
 
 		if (ioctl(camera_device, VIDIOC_QBUF, &buffer) < 0) {
 			LOGE("CAMERA VIDIOC_QBUF Failed");
@@ -515,7 +520,7 @@ s_fmt_fail:
 
 		while (ioctl(camera_device, VIDIOC_DQBUF, &cfilledbuffer) < 0) 
 		{
-			LOGE("VIDIOC_DQBUF Failed cnt = %d\n", err_cnt);
+			//LOGE("VIDIOC_DQBUF Failed cnt = %d\n", err_cnt);
 			if(err_cnt++ > 10)
 			{
 				mNotifyCb(CAMERA_MSG_ERROR,CAMERA_DEVICE_ERROR_FOR_RESTART,0,mCallbackCookie);
@@ -526,6 +531,14 @@ s_fmt_fail:
 				return NO_ERROR;           
 			}
 		}
+
+	//	if(mPreviousSceneMode ==9 ||  mPreviousSceneMode ==11){
+			if(mMsgEnabled & CAMERA_MSG_SHUTTER)
+			{
+				HAL_PRINT("Night or Fireworksl CAMERA_MSG_SHUTTER\n");
+				mNotifyCb(CAMERA_MSG_SHUTTER,0,0,mCallbackCookie);
+			}
+		//}
 #if TIMECHECK
 		PPM("AFTER CAPTURE YUV IMAGE\n");
 #endif
@@ -537,9 +550,9 @@ s_fmt_fail:
 			return -1;
 		}
 
-#if OMAP_SCALE
+#ifdef MIRROR_TEST	// 2011.06.29 Jinokang
         if(mCameraIndex == VGA_CAMERA && mCamMode != VT_MODE) {
-            if(orientation == 0 || orientation == 180) {
+            if(orientation == 90 || orientation == 270) {		//if(orientation == 90 || orientation == 270) {
                 struct v4l2_control vc;            
                 CLEAR(vc);
                 vc.id = V4L2_CID_FLIP;                
@@ -624,14 +637,14 @@ s_fmt_fail:
 		if(mCamera_Mode == CAMERA_MODE_YUV)
 		{
 #ifdef HARDWARE_OMX
-			int mFrameSizeConvert = (image_width*image_height*2) ;
+			int mFrameSizeConvert = (image_height*image_width*2) ;//(preview_width*preview_height*2) ;//LYG
 			mVGAYUVPictureHeap = new MemoryHeapBase(mFrameSizeConvert);
 			mVGAYUVPictureBuffer = new MemoryBase(mVGAYUVPictureHeap,0,mFrameSizeConvert);
 			mVGANewheap = mVGAYUVPictureBuffer->getMemory(&newoffset, &newsize);
 
 			sp<IMemoryHeap> heap = mPictureBuffer->getMemory(&newoffset, &newsize);
 			uint8_t* pYUVDataBuf = (uint8_t *)heap->base() + newoffset ;
-			LOGD("PictureThread: generated a picture, yuv_buffer=%p yuv_len=%d\n",pYUVDataBuf,capture_len);
+			HAL_PRINT("PictureThread: generated a picture, yuv_buffer=%p yuv_len=%d\n",pYUVDataBuf,capture_len);
 #if OMAP_SCALE
 			TempHeapBase = new MemoryHeapBase(mFrameSizeConvert);
 			TempBase = new MemoryBase(TempHeapBase,0,mFrameSizeConvert);
@@ -641,6 +654,8 @@ s_fmt_fail:
 				LOGE("scale_process() failed\n");
 			}
 #endif
+
+#if 0 //lyg
 
 #if TIMECHECK
 			PPM("YUV COLOR ROTATION STARTED\n");
@@ -687,15 +702,29 @@ s_fmt_fail:
 
 				}							    					
 			}
-
+#if OMAP_SCALE
+			TempHeapBase.clear();
+			TempBase.clear();
+			TempHeap.clear();
+#endif
 #if TIMECHECK
 			PPM("YUV COLOR ROTATION Done\n");
 #endif
+#endif // lyg
+
 #endif //HARDWARE_OMX
 
 			if (mMsgEnabled & CAMERA_MSG_COMPRESSED_IMAGE)
 			{
+				LOGE("CAMERA_MSG_COMPRESSED_IMAGE Enabled ");		
 #ifdef HARDWARE_OMX  
+				ssize_t newoffset;
+				size_t newsize;  
+				
+				sp<IMemoryHeap> heap = mPictureBuffer->getMemory(&newoffset, &newsize);
+				uint8_t* pYUVDataBuf = (uint8_t *)heap->base() + newoffset ;
+				HAL_PRINT("PictureThread: generated a picture, yuv_buffer=%p yuv_len=%d, newofset=%d, newsize=%d\n",pYUVDataBuf,capture_len,newoffset,newsize);
+
 				int jpegSize = image_width * image_height*2;
 				capture_len = (image_width*image_height*2) ;
 				CreateExif(NULL, 0, pExifBuf, EXIF_Data_Size, 0);
@@ -712,6 +741,10 @@ s_fmt_fail:
 				{
 					int jpegFormat = PIX_YUV422I;
 #ifdef OMAP_ENHANCEMENT
+					HAL_PRINT(" outbuffer = 0x%p, jpegSize = %d, yuv_buffer = 0x%p, yuv_len = %d, image_width = %d, image_height = %d, quality = %d, mippMode =%d\n", outBuffer , jpegSize, pYUVDataBuf, capture_len, image_width, image_height, mYcbcrQuality,mippMode);  
+					//jpegEncoder->encodeImage(outBuffer, jpegSize, (uint8_t*)mVGANewheap->base(), capture_len, image_height,image_width,mYcbcrQuality,jpegFormat);    
+					//jpegEncoder->encodeImage(outBuffer, jpegSize,  (uint8_t*)heap->base(), capture_len, image_height,image_width,mYcbcrQuality,jpegFormat);    
+					//jpegEncoder->encodeImage(outBuffer, jpegSize,  (uint8_t*)pYUVDataBuf, capture_len, image_width,image_height,mYcbcrQuality,jpegFormat);    
 #if OMAP_SCALE
 
 					err = jpegEncoder->encodeImage(outBuffer, 
@@ -729,24 +762,24 @@ s_fmt_fail:
 #else
 					err = jpegEncoder->encodeImage(outBuffer, 
 											jpegSize, 
-											(uint8_t*)mVGANewheap->base(), 
+											(uint8_t*)pYUVDataBuf, 
 											capture_len, 
 											pExifBuf,
 											EXIF_Data_Size,
-											image_height,	//
 											image_width,	//
+											image_height,	//
 											mThumbnailWidth,
 											mThumbnailHeight,
 											mYcbcrQuality,
 											jpegFormat);
 #endif        	
-					LOGD("JPEG ENCODE END\n");
+					HAL_PRINT("JPEG ENCODE END\n");
 
 					if(err != true) {
 						LOGE("Jpeg encode failed!!\n");
 						return -1;
 					} else {
-						LOGD("Jpeg encode success!!\n");
+						HAL_PRINT("Jpeg encode success!!\n");
 					}
 #endif
 				}
@@ -764,23 +797,20 @@ s_fmt_fail:
 				mJPEGPictureMemBase.clear();
 				mJPEGPictureHeap.clear();
 #endif //HARDWARE_OMX
-			}//END of CAMERA_MSG_COMPRESSED_IMAGE
-
+			}
+			//END of CAMERA_MSG_COMPRESSED_IMAGE
 			yuv_buffer = (uint8_t*)cfilledbuffer.m.userptr;		           
-
+				
 			if(twoSecondReviewMode == 1)
 			{ 	
-#if OMAP_SCALE
-				DrawOverlay((uint8_t*)mVGANewheap->base(), true);
-#else
-				DrawOverlay(yuv_buffer, true);
-#endif
+				DrawOverlay(yuv_buffer, false);
 			}  
-			//yuv_buffer: [Reused]Output buffer with YUV 420P 270 degree rotated.             
+			//				yuv_buffer: [Reused]Output buffer with YUV 420P 270 degree rotated.             
 			if(mMsgEnabled & CAMERA_MSG_RAW_IMAGE)
 			{
-				Neon_Convert_yuv422_to_YUV420P((uint8_t *)mVGANewheap->base(), (uint8_t *)yuv_buffer, mPreviewHeight, mPreviewWidth);         	
-				mDataCb(CAMERA_MSG_RAW_IMAGE, mPictureBuffer, mCallbackCookie);
+				//Neon_Convert_yuv422_to_YUV420P((uint8_t *)mVGANewheap->base(), (uint8_t *)yuv_buffer, mPreviewHeight, mPreviewWidth);         	
+                            //Neon_Convert_yuv422_to_YUV420P((uint8_t *)mVGANewheap->base(), (uint8_t *)yuv_buffer, image_height,image_width);         	
+				//mDataCb(CAMERA_MSG_RAW_IMAGE, mPictureBuffer, mCallbackCookie);
 			}        
 		}
 		//END of CAMERA_MODE_YUV
@@ -797,13 +827,11 @@ s_fmt_fail:
 
 		if(mCamera_Mode == CAMERA_MODE_YUV)
 		{
-			mVGAYUVPictureBuffer.clear();
-			mVGAYUVPictureHeap.clear();
-#if OMAP_SCALE
-			TempHeapBase.clear();
-			TempBase.clear();
-			TempHeap.clear();
-#endif
+			//if(mCameraIndex == VGA_CAMERA)
+			//{
+				mVGAYUVPictureBuffer.clear();
+				mVGAYUVPictureHeap.clear();
+			//}
 		}
 
 		delete []pExifBuf;
@@ -818,6 +846,8 @@ s_fmt_fail:
 	void CameraHal::CreateExif(unsigned char* pInThumbnailData,int Inthumbsize,unsigned char* pOutExifBuf,int& OutExifSize,int flag)
 	{
 		int w =0, h = 0;
+		char getSoftver[20]= {0,};
+		double temp_denominator;		//ExifInfo.exposureTime.denominator
 
 		int orientationValue = getOrientation();
 		HAL_PRINT("CreateExif orientationValue = %d \n", orientationValue);				
@@ -838,7 +868,7 @@ s_fmt_fail:
 		memset(&ExifInfo, NULL, sizeof(ExifInfoStructure));
 
 		strcpy( (char *)&ExifInfo.maker, "SAMSUNG");
-		strcpy( (char *)&ExifInfo.model, "GT-I9003");
+		strcpy( (char *)&ExifInfo.model, "YP-GI1"); // Usys_sadang EK14 YP-GS1
 
 		mParameters.getPreviewSize(&w, &h);
 
@@ -857,8 +887,16 @@ s_fmt_fail:
 			sprintf((char *)&ExifInfo.dateTime, "%4d:%02d:%02d %02d:%02d:%02d", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec); 					
 		}
 
+		memset(getSoftver, 0, sizeof(getSoftver));
+		property_get("ro.build.PDA", getSoftver, "");
+		//LOGI("softver_FW = %s",getSoftver);
+
+		sprintf((char *)&ExifInfo.software, "YP-%s", getSoftver); 	//S/W version
+		//sprintf((char *)&ExifInfo.software, "YP-GS1 XXKI5"); 	//S/W version
+
 		if(mCameraIndex==MAIN_CAMERA)
 		{
+		#if 0
 			int cam_ver = GetCamera_version();
 
 			ExifInfo.Camversion[0] = (cam_ver & 0xFF);
@@ -867,7 +905,8 @@ s_fmt_fail:
 			ExifInfo.Camversion[3] = ((cam_ver >> 24) & 0xFF);
 			HAL_PRINT("CreateExif GetCamera_version =[%x][%x][%x][%x]\n", ExifInfo.Camversion[2],ExifInfo.Camversion[3],ExifInfo.Camversion[0],ExifInfo.Camversion[1]);	
 
-			sprintf((char *)&ExifInfo.software, "fw %02d.%02d prm %02d.%02d", ExifInfo.Camversion[2],ExifInfo.Camversion[3],ExifInfo.Camversion[0],ExifInfo.Camversion[1]); 	
+			sprintf((char *)&ExifInfo.software, "fw %02d.%02d prm %02d.%02d", ExifInfo.Camversion[2],ExifInfo.Camversion[3],ExifInfo.Camversion[0],ExifInfo.Camversion[1]); 	//S/W version
+		#endif
 			if(mThumbnailWidth > 0 && mThumbnailHeight > 0)
 			{
 				ExifInfo.hasThumbnail = true;
@@ -884,26 +923,36 @@ s_fmt_fail:
 			ExifInfo.exposureProgram            = 3;
 			ExifInfo.exposureMode               = 0;
 			ExifInfo.contrast                   = convertToExifLMH(getContrast(), 2);
-			ExifInfo.fNumber.numerator          = 26;
+			ExifInfo.fNumber.numerator          = 28;
 			ExifInfo.fNumber.denominator        = 10;
 			ExifInfo.aperture.numerator         = 26;
 			ExifInfo.aperture.denominator       = 10;
-			ExifInfo.maxAperture.numerator      = 26;
-			ExifInfo.maxAperture.denominator    = 10;
-			ExifInfo.focalLength.numerator      = 3430;
+			ExifInfo.maxAperture.numerator      = 297;
+			ExifInfo.maxAperture.denominator    = 100;
+			ExifInfo.focalLength.numerator      = 2700;
 			ExifInfo.focalLength.denominator    = 1000;
 			//[ 2010 05 01 exif
 			ExifInfo.shutterSpeed.numerator 	= exifobj.TV_Value;
 			ExifInfo.shutterSpeed.denominator   = 100;
+			HAL_PRINT("shutterSpeed.numerator = %d \n",ExifInfo.shutterSpeed.numerator);
+
+
+
 			ExifInfo.exposureTime.numerator     = 1;
-			ExifInfo.exposureTime.denominator   = (unsigned int)pow(2.0, ((double)exifobj.TV_Value/100.0));
+			temp_denominator  = (double)exifobj.shutter_speed_denominator /400.0;
+			ExifInfo.exposureTime.denominator   = (1.0 /temp_denominator) * 1000;
+			//ExifInfo.exposureTime.denominator   = (unsigned int)pow(2.0, ((double)exifobj.TV_Value/100.0));
+			HAL_PRINT("ExifInfo.exposureTime.denominator = %d \n",ExifInfo.exposureTime.denominator);
+			
+
 			//]
 			ExifInfo.brightness.numerator       = 5;
 			ExifInfo.brightness.denominator     = 9;
-			ExifInfo.iso                        = 1;
-			ExifInfo.flash                     	= 0;	// default value
+			//ExifInfo.iso                        = 1;
+			ExifInfo.isoSpeedRating 	= exifobj.iso;		//add by yongjin - phillit
+			ExifInfo.flash                     	= 0;			//flash OFF
 
-			// Flash
+#if 0	// Flash
 			// bit 0    -whether the flash fired
 			// bit 1,2 -status of returned light
 			// bit 3,4 - indicating the camera's flash mode
@@ -921,7 +970,7 @@ s_fmt_fail:
 			//			ExifInfo.flash = 32;		// bit 5 - No flash function.
 			//		else
 			{
-				LOGD("createExif - flashmode = %d flash result = %d", mPreviousFlashMode, ExifInfo.flash);
+				HAL_PRINT("createExif - flashmode = %d flash result = %d", mPreviousFlashMode, ExifInfo.flash);
 
 				// bit 0
 				ExifInfo.flash = ExifInfo.flash | exifobj.flash;
@@ -933,6 +982,7 @@ s_fmt_fail:
 				//			if(mPreviousFlashMode == ??)	// Flashmode red-eye
 				//				ExifInfo.flash = ExifInfo.flash | 64;						
 			}
+#endif
 
 			HAL_PRINT("Main Orientation = %d\n",orientationValue);
 			switch(orientationValue)
@@ -953,6 +1003,7 @@ s_fmt_fail:
 					ExifInfo.orientation                = 1 ;
 					break;
 			}
+#if 0	//calIsoValue
 			//[ 2010 05 01 exif
 			double calIsoValue = 0;
 			calIsoValue = pow(2.0,((double)exifobj.SV_Value/100.0))*3.125;
@@ -1081,6 +1132,7 @@ s_fmt_fail:
 			{
 				tempISO = 8000;
 			}
+#endif	//calIsoValue
 
 			if(mPreviousSceneMode <= 1)
 			{
@@ -1095,6 +1147,7 @@ s_fmt_fail:
 				}
 				ExifInfo.saturation                 = convertToExifLMH(getSaturation(), 2);
 				ExifInfo.sharpness                  = convertToExifLMH(getSharpness(), 2);
+#if 0	//mPreviousISO
 				switch(mPreviousISO)
 				{
 					case 2:
@@ -1116,40 +1169,41 @@ s_fmt_fail:
 						ExifInfo.isoSpeedRating             = tempISO;
 						break;
 				}                
-
-				switch(getBrightness())
+#endif
+				switch(getExposure())
 				{
-					case 0:
+					case -4:
 						ExifInfo.exposureBias.numerator = -20;
 						break;
-					case 1:
+					case -3:
 						ExifInfo.exposureBias.numerator = -15;
 						break;
-					case 2:
+					case -2:
 						ExifInfo.exposureBias.numerator = -10;
 						break;
-					case 3:
+					case -1:
 						ExifInfo.exposureBias.numerator =  -5;
 						break;
-					case 4:
+					case 0:
 						ExifInfo.exposureBias.numerator =   0;
 						break;
-					case 5:
+					case 1:
 						ExifInfo.exposureBias.numerator =   5;
 						break;
-					case 6:
-						ExifInfo.exposureBias.numerator =  10;
+					case 2:
+						ExifInfo.exposureBias.numerator =   10;
 						break;
-					case 7:
+					case 3:
 						ExifInfo.exposureBias.numerator =  15;
 						break;
-					case 8:
+					case 4:
 						ExifInfo.exposureBias.numerator =  20;
 						break;
 					default:
 						ExifInfo.exposureBias.numerator = 0;
 						break;
 				}
+
 				ExifInfo.exposureBias.denominator       = 10;
 				ExifInfo.sceneCaptureType               = 0;
 			}
@@ -1158,94 +1212,101 @@ s_fmt_fail:
 				switch(mPreviousSceneMode)
 				{
 					case 3://sunset
-						ExifInfo.meteringMode               = 2;
+						ExifInfo.meteringMode               = mPreviousMetering;
 						ExifInfo.whiteBalance               = 1;
 						ExifInfo.saturation                 = 0;
 						ExifInfo.sharpness                  = 0;
-						ExifInfo.isoSpeedRating             = tempISO;
+						//ExifInfo.isoSpeedRating             = tempISO;
+						ExifInfo.isoSpeedRating             = exifobj.iso;
 						ExifInfo.exposureBias.numerator     = 0;
 						ExifInfo.exposureBias.denominator   = 10;
 						ExifInfo.sceneCaptureType           = 4;
 						break;
 					case 4://dawn
-						ExifInfo.meteringMode               = 2;
+						ExifInfo.meteringMode               = mPreviousMetering;
 						ExifInfo.whiteBalance               = 1;
 						ExifInfo.saturation                 = 0;
 						ExifInfo.sharpness                  = 0;
-						ExifInfo.isoSpeedRating             = tempISO;
+						//ExifInfo.isoSpeedRating             = tempISO;
+						ExifInfo.isoSpeedRating             = exifobj.iso;
 						ExifInfo.exposureBias.numerator     = 0;
 						ExifInfo.exposureBias.denominator   = 10;
 						ExifInfo.sceneCaptureType           = 4;
 						break;
 					case 5://candlelight
-						ExifInfo.meteringMode               = 2;
+						ExifInfo.meteringMode               = mPreviousMetering;
 						ExifInfo.whiteBalance               = 1;
 						ExifInfo.saturation                 = 0;
 						ExifInfo.sharpness                  = 0;
-						ExifInfo.isoSpeedRating             = tempISO;
+						//ExifInfo.isoSpeedRating             = tempISO;
+						ExifInfo.isoSpeedRating             = exifobj.iso;
 						ExifInfo.exposureBias.numerator     = 0;
 						ExifInfo.exposureBias.denominator   = 10;
 						ExifInfo.sceneCaptureType           = 4;
 						break;
 					case 6://beach & snow
-						ExifInfo.meteringMode               = 2;
+						ExifInfo.meteringMode               = mPreviousMetering;
 						ExifInfo.whiteBalance               = 0;
 						ExifInfo.saturation                 = 2;
 						ExifInfo.sharpness                  = 0;
 						ExifInfo.isoSpeedRating             = 50;
 						ExifInfo.exposureBias.numerator     = 10;
 						ExifInfo.exposureBias.denominator   = 10;
-						ExifInfo.sceneCaptureType           = 1;
+						ExifInfo.sceneCaptureType           = 4;
 						break;
 					case 7://againstlight
 						ExifInfo.whiteBalance               = 0;
 						ExifInfo.saturation                 = 0;
 						ExifInfo.sharpness                  = 0;
-						ExifInfo.isoSpeedRating             = tempISO;
+						//ExifInfo.isoSpeedRating             = tempISO;
+						ExifInfo.isoSpeedRating             = exifobj.iso;
 						if(mPreviousFlashMode <= 1)
 						{
-							ExifInfo.meteringMode               = 3;
+							ExifInfo.meteringMode               = mPreviousMetering;
 						}
 						else
 						{
-							ExifInfo.meteringMode               = 2;
+							ExifInfo.meteringMode               = mPreviousMetering;
 						}
 						ExifInfo.exposureBias.numerator 	= 0;
 						ExifInfo.exposureBias.denominator   = 10;
 						ExifInfo.sceneCaptureType           = 4;
 						break;
 					case 8://text
-						ExifInfo.meteringMode               = 2;
+						ExifInfo.meteringMode               = mPreviousMetering;
 						ExifInfo.whiteBalance               = 0;
 						ExifInfo.saturation                 = 0;
 						ExifInfo.sharpness                  = 2;
-						ExifInfo.isoSpeedRating             = tempISO;
+						//ExifInfo.isoSpeedRating             = tempISO;
+						ExifInfo.isoSpeedRating             = exifobj.iso;
 						ExifInfo.exposureBias.numerator     = 0;
 						ExifInfo.exposureBias.denominator   = 10;
 						ExifInfo.sceneCaptureType           = 4;
 						break;
 					case 9://night
-						ExifInfo.meteringMode               = 2;
+						ExifInfo.meteringMode               = mPreviousMetering;
 						ExifInfo.whiteBalance               = 0;
 						ExifInfo.saturation                 = 0;
 						ExifInfo.sharpness                  = 0;
-						ExifInfo.isoSpeedRating             = tempISO;
+						//ExifInfo.isoSpeedRating             = tempISO;
+						ExifInfo.isoSpeedRating             = exifobj.iso;
 						ExifInfo.exposureBias.numerator     = 0;
 						ExifInfo.exposureBias.denominator   = 10;
 						ExifInfo.sceneCaptureType           = 3;
 						break;	
 					case 10://landscape
-						ExifInfo.meteringMode               = 5;
+						ExifInfo.meteringMode               = mPreviousMetering;
 						ExifInfo.whiteBalance               = 0;
 						ExifInfo.saturation                 = 2;
 						ExifInfo.sharpness                  = 2;
-						ExifInfo.isoSpeedRating             = tempISO;
+						//ExifInfo.isoSpeedRating             = tempISO;
+						ExifInfo.isoSpeedRating             = exifobj.iso;
 						ExifInfo.exposureBias.numerator     = 0;
 						ExifInfo.exposureBias.denominator   = 10;
 						ExifInfo.sceneCaptureType           = 1;
 						break;
 					case 11://fireworks
-						ExifInfo.meteringMode               = 2;
+						ExifInfo.meteringMode               = mPreviousMetering;
 						ExifInfo.whiteBalance               = 0;
 						ExifInfo.saturation                 = 0;
 						ExifInfo.sharpness                  = 0;
@@ -1255,27 +1316,29 @@ s_fmt_fail:
 						ExifInfo.sceneCaptureType           = 4;
 						break;
 					case 12://portrait
-						ExifInfo.meteringMode               = 2;
+						ExifInfo.meteringMode               = mPreviousMetering;
 						ExifInfo.whiteBalance               = 0;
 						ExifInfo.saturation                 = 0;
 						ExifInfo.sharpness                  = 1;
-						ExifInfo.isoSpeedRating             = tempISO;
+						//ExifInfo.isoSpeedRating             = tempISO;
+						ExifInfo.isoSpeedRating             = exifobj.iso;
 						ExifInfo.exposureBias.numerator     = 0;
 						ExifInfo.exposureBias.denominator   = 10;
 						ExifInfo.sceneCaptureType           = 2;
 						break;
 					case 13://fallcolor
-						ExifInfo.meteringMode               = 2;
+						ExifInfo.meteringMode               = mPreviousMetering;
 						ExifInfo.whiteBalance               = 0;
 						ExifInfo.saturation                 = 2;
 						ExifInfo.sharpness                  = 0;
-						ExifInfo.isoSpeedRating             = tempISO;
+						//ExifInfo.isoSpeedRating             = tempISO;
+						ExifInfo.isoSpeedRating             = exifobj.iso;
 						ExifInfo.exposureBias.numerator     = 0;
 						ExifInfo.exposureBias.denominator   = 10;
 						ExifInfo.sceneCaptureType           = 4;
 						break;
 					case 14://indoors
-						ExifInfo.meteringMode               = 2;
+						ExifInfo.meteringMode               = mPreviousMetering;
 						ExifInfo.whiteBalance               = 0;
 						ExifInfo.saturation                 = 2;
 						ExifInfo.sharpness                  = 0;
@@ -1285,11 +1348,12 @@ s_fmt_fail:
 						ExifInfo.sceneCaptureType           = 4;
 						break;
 					case 15://sports
-						ExifInfo.meteringMode               = 2;
+						ExifInfo.meteringMode               = mPreviousMetering;
 						ExifInfo.whiteBalance               = 0;
 						ExifInfo.saturation                 = 0;
 						ExifInfo.sharpness                  = 0;
-						ExifInfo.isoSpeedRating             = tempISO;
+						//ExifInfo.isoSpeedRating             = tempISO;
+						ExifInfo.isoSpeedRating             = exifobj.iso;
 						ExifInfo.exposureBias.numerator     = 0;
 						ExifInfo.exposureBias.denominator   = 10;
 						ExifInfo.sceneCaptureType           = 4;
@@ -1316,11 +1380,11 @@ s_fmt_fail:
 			ExifInfo.fNumber.denominator        = 10;
 			ExifInfo.aperture.numerator         = 26;
 			ExifInfo.aperture.denominator       = 10;
-			ExifInfo.maxAperture.numerator      = 26;
-			ExifInfo.maxAperture.denominator	= 10;
-			ExifInfo.focalLength.numerator      = 900;
+			ExifInfo.maxAperture.numerator      = 297;
+			ExifInfo.maxAperture.denominator	= 100;
+			ExifInfo.focalLength.numerator      = 1300;
 			ExifInfo.focalLength.denominator	= 1000;
-			ExifInfo.shutterSpeed.numerator 	= 16;
+			ExifInfo.shutterSpeed.numerator 	= 0;	// 2012.01.07 Jino.Kang Delete field of shutterspeed for VGACam
 			ExifInfo.shutterSpeed.denominator	= 1;
 			ExifInfo.brightness.numerator 	    = 5;
 			ExifInfo.brightness.denominator     = 9;
@@ -1352,41 +1416,41 @@ s_fmt_fail:
 			ExifInfo.sharpness                  = 0;
 			ExifInfo.isoSpeedRating             = 100;
 			ExifInfo.exposureTime.numerator     = 1;
-			ExifInfo.exposureTime.denominator   = 16;
+			ExifInfo.exposureTime.denominator   = 0;	// 2012.01.07 Jino.Kang Delete field of exposureTime for VGACam
 			ExifInfo.flash 						= 0;
-			switch(getBrightness())
-			{
-				case 0:
-					ExifInfo.exposureBias.numerator = -20;
-					break;
-				case 1:
-					ExifInfo.exposureBias.numerator = -15;
-					break;
-				case 2:
-					ExifInfo.exposureBias.numerator = -10;
-					break;
-				case 3:
-					ExifInfo.exposureBias.numerator =  -5;
-					break;
-				case 4:
-					ExifInfo.exposureBias.numerator =   0;
-					break;
-				case 5:
-					ExifInfo.exposureBias.numerator =   5;
-					break;
-				case 6:
-					ExifInfo.exposureBias.numerator =  10;
-					break;
-				case 7:
-					ExifInfo.exposureBias.numerator =  15;
-					break;
-				case 8:
-					ExifInfo.exposureBias.numerator =  20;
-					break;
-				default:
-					ExifInfo.exposureBias.numerator = 0;
-					break;
-			}
+			switch(getExposure())
+				{
+					case -4:
+						ExifInfo.exposureBias.numerator = -20;
+						break;
+					case -3:
+						ExifInfo.exposureBias.numerator = -15;
+						break;
+					case -2:
+						ExifInfo.exposureBias.numerator = -10;
+						break;
+					case -1:
+						ExifInfo.exposureBias.numerator =  -5;
+						break;
+					case 0:
+						ExifInfo.exposureBias.numerator =   0;
+						break;
+					case 1:
+						ExifInfo.exposureBias.numerator =   5;
+						break;
+					case 2:
+						ExifInfo.exposureBias.numerator =   10;
+						break;
+					case 3:
+						ExifInfo.exposureBias.numerator =  15;
+						break;
+					case 4:
+						ExifInfo.exposureBias.numerator =  20;
+						break;
+					default:
+						ExifInfo.exposureBias.numerator = 0;
+						break;
+				}
 			ExifInfo.exposureBias.denominator       = 10;
 			ExifInfo.sceneCaptureType               = 0;
 		}

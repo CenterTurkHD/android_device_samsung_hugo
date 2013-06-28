@@ -1,3 +1,7 @@
+ifdef BOARD_USES_TI_CAMERA_HAL
+
+################################################
+
 LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
@@ -21,7 +25,7 @@ LOCAL_C_INCLUDES += \
     frameworks/base/include/camera \
     frameworks/base/include/binder \
     frameworks/base/include/ui \
-    device/samsung/galaxysl/liboverlay
+    hardware/ti/omap3/liboverlay
 
 LOCAL_CFLAGS += -fno-short-enums 
 
@@ -39,9 +43,7 @@ LOCAL_C_INCLUDES += \
     hardware/ti/omx/system/src/openmax_il/common/inc \
     hardware/ti/omx/video/src/openmax_il/prepost_processor/inc \
     hardware/ti/omx/system/src/openmax_il/resource_manager_proxy/inc \
-    hardware/ti/omx/system/src/openmax_il/resource_manager/resource_activity_monitor/inc \
-    hardware/ti/omx/image/src/openmax_il/jpeg_enc/inc \
-    external/libexif
+    hardware/ti/omx/system/src/openmax_il/resource_manager/resource_activity_monitor/inc
 
 LOCAL_CFLAGS += -O0 -g3 -fpic -fstrict-aliasing -DIPP_LINUX -D___ANDROID___ -DHARDWARE_OMX
 
@@ -78,8 +80,8 @@ endif
 endif
 
 LOCAL_MODULE:= libcamera
-LOCAL_MODULE_TAGS:= optional
-LOCAL_WHOLE_STATIC_LIBRARIES:= libyuv
+LOCAL_WHOLE_STATIC_LIBRARIES:= \
+                                    libyuv
 
 include $(BUILD_SHARED_LIBRARY)
 include $(LOCAL_PATH)/Neon/android.mk
@@ -116,3 +118,5 @@ include $(LOCAL_PATH)/Neon/android.mk
 #include $(BUILD_EXECUTABLE)
 
 ################################################
+
+endif

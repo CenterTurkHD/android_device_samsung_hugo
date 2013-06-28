@@ -37,8 +37,7 @@ Better Error handling
 #include <stdio.h>
 #include <string.h>
 #include <semaphore.h>
-#include <OMX_JpegEnc_CustomCmd.h>
-
+#include "../../omx/image/src/openmax_il/jpeg_enc/inc/OMX_JpegEnc_CustomCmd.h"
 
 #include <utils/Log.h>
 //#include <OMX_JpegEnc_CustomCmd.h>

@@ -60,6 +60,14 @@ extern "C" {
 #define TIMECHECK			0
 #define CHECK_FRAMERATE		0
 
+// G-Talk CameraOpen in Boot time
+//#define SKIP_FIRST_OPEN
+
+#ifdef SKIP_FIRST_OPEN
+#define GTALK_PROCESS_NAME "com.google.android.talk"
+#endif
+
+
 #if HAL_DEBUGGING
 #define HAL_PRINT(arg1,arg2...) LOGD(arg1,## arg2)
 #else
@@ -70,9 +78,8 @@ extern "C" {
 #define LOG_FUNCTION_NAME_EXIT 		LOGD("%d: %s() EXIT", __LINE__, __FUNCTION__);
 //]
 
-#define CAMERA_MSG_ASD      0x204
 #define EVE_CAM 				// NCB-TI
-#define VT_BACKGROUND_SOLUTION	// Latona TD/Heron : It's for VT of CMCC projects
+
 
 #define CAMERA_MODE_JPEG    1
 #define CAMERA_MODE_YUV     2
@@ -82,7 +89,7 @@ extern "C" {
 
 #define RESIZER             1
 #define JPEG                1
-#define OMAP_SCALE			1	// FrontCAM Preview & Capture landscpae view option for GB
+#define OMAP_SCALE			0
 
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
 
@@ -115,17 +122,19 @@ extern "C" {
 #define VIDEO_DEVICE5       		"/dev/video5"
 #define VIDEO_DEVICE        		"/dev/video0"
 
-#define MIN_WIDTH           		128
-#define MIN_HEIGHT          		96
+#define MIN_ImageWIDTH           		320//128
+#define MIN_ImageHEIGHT          		240//96
+#define MIN_PreviewWIDTH           		176//128
+#define MIN_PreviewHEIGHT          		144//96
 #define CIF_WIDTH           		352
 #define CIF_HEIGHT          		288
 
-#define PICTURE_WIDTH       		2560 /* 5mp - 2560. 8mp - 3280 */ /* Make sure it is a multiple of 16. */
-#define PICTURE_HEIGHT      		1920 /* 5mp - 2048. 8mp - 2464 */ /* Make sure it is a multiple of 16. */
+#define PICTURE_WIDTH       		1600//2048//1600//2560 /* 5mp - 2560. 8mp - 3280 */ /* Make sure it is a multiple of 16. */
+#define PICTURE_HEIGHT      		1200//1536//1200//1920 /* 5mp - 2048. 8mp - 2464 */ /* Make sure it is a multiple of 16. */
 #define PREVIEW_WIDTH       		640
 #define PREVIEW_HEIGHT      		480
-#define JPEG_THUMBNAIL_WIDTH		160
-#define JPEG_THUMBNAIL_HEIGHT		120
+#define JPEG_THUMBNAIL_WIDTH		512//160
+#define JPEG_THUMBNAIL_HEIGHT		384//120
 
 #define PIXEL_FORMAT           		V4L2_PIX_FMT_UYVY
 #define PIXEL_FORMAT_JPEG      		V4L2_PIX_FMT_JPEG
@@ -188,7 +197,7 @@ namespace android {
 #define SAMSUNG_SECURITY
 
 #define ROTATEANGLE   							270
-#define VTROTATEANGLE 							90
+#define VTROTATEANGLE 							270
 
 #define CAMERA_DEVICE_ERROR_FOR_UNKNOWN    		1
 #define CAMERA_DEVICE_ERROR_FOR_RESTART    		-1000
@@ -302,7 +311,8 @@ namespace android {
 			void previewThread(int cameraId);
 			static int beginPictureThread(void *cookie);
 
-			int validateSize(int w, int h);	
+			int validateSize(int w, int h);
+			int validatePreviewSize(int w, int h);		// JinoKang Add For CTS Ver 2.3r12
 			void drawRect(uint8_t *input, uint8_t color, int x1, int y1, int x2, int y2, int width, int height);
 			void procThread();
 			void facetrackingThread();
@@ -517,6 +527,10 @@ namespace android {
 			static int camera_device;
 			struct timeval ppm;
 			struct timeval ppm_start;
+
+#ifdef SKIP_FIRST_OPEN
+      static int skipFirstOpen;
+#endif
 
 			int mippMode;
 			int pictureNumber;

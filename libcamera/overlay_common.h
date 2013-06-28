@@ -95,8 +95,8 @@
 
 //#define LCD_HEIGHT 800
 
-#define LCD_WIDTH 1024
-#define LCD_HEIGHT 600
+#define LCD_WIDTH 320//1024
+#define LCD_HEIGHT 480//600
 
 #define TV_WIDTH 720
 

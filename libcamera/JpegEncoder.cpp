@@ -442,8 +442,8 @@ bool JpegEncoder::StartFromLoadedState(unsigned char* pExifBuf, int ExifSize, in
 	imageinfo = (IMAGE_INFO*)malloc(sizeof(IMAGE_INFO));
 	memset((void *)imageinfo, 0, sizeof(IMAGE_INFO));
 
-    imageinfo->nThumbnailWidth_app1 = 160;
-    imageinfo->nThumbnailHeight_app1 = 120;
+    imageinfo->nThumbnailWidth_app1 = ThumbWidth;
+    imageinfo->nThumbnailHeight_app1 = ThumbHeight;
     imageinfo->bAPP1 = OMX_TRUE;
     imageinfo->nComment = OMX_TRUE;
     imageinfo->pCommentString = "hello";
