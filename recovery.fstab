@@ -8,4 +8,4 @@
 /sdcard		vfat		/dev/block/mmcblk0p10
 
 /boot		emmc		/dev/block/mmcblk0p5
-/recovery		emmc		/dev/block/mmcblk0p6
+/recovery	emmc		/dev/block/mmcblk0p6
