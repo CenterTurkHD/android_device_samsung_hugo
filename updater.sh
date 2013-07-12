@@ -24,8 +24,8 @@ export PATH=/:/sbin:/system/xbin:/system/bin:/tmp:$PATH
 # make sure sdcard is mounted
 if ! /tmp/busybox grep -q /sdcard /proc/mounts ; then
     /tmp/busybox mkdir -p /sdcard
-    /tmp/busybox umount -l /dev/block/mmcblk1p1
-    if ! /tmp/busybox mount -t vfat /dev/block/mmcblk1p1 /sdcard ; then
+    /tmp/busybox umount -l /dev/block/mmcblk1p10
+    if ! /tmp/busybox mount -t vfat /dev/block/mmcblk1p10 /sdcard ; then
         /tmp/busybox echo "Cannot mount sdcard."
         exit 1
     fi
@@ -43,8 +43,8 @@ if ! /tmp/busybox test -e /sdcard/backup/efs/nv_data.bin ; then
     # make sure efs is mounted
     if ! /tmp/busybox grep -q /efs /proc/mounts ; then
         /tmp/busybox mkdir -p /efs
-        /tmp/busybox umount -l /dev/block/stl3
-        if ! /tmp/busybox mount -t rfs /dev/block/stl3 /efs ; then
+        /tmp/busybox umount -l /dev/block/mmcblk0p1
+        if ! /tmp/busybox mount -t ext4 /dev/block/mmcblk0p1 /efs ; then
             /tmp/busybox echo "Cannot mount efs."
             exit 2
         fi
@@ -65,9 +65,9 @@ fi
 #
 
 # format system if not ext4
-if ! /tmp/busybox mount -t ext4 /dev/block/stl9 /system ; then
+if ! /tmp/busybox mount -t ext4 /dev/block/mmcblk0p8 /system ; then
     /tmp/busybox umount /system
-    /tmp/make_ext4fs -b 4096 -g 32768 -i 8192 -I 256 -a /data /dev/block/stl9
+    /tmp/make_ext4fs -b 4096 -g 32768 -i 8192 -I 256 -a /data /dev/block/mmcblk0p8
 fi
 
 # format dbdata if not ext4
@@ -77,15 +77,15 @@ if ! /tmp/busybox mount -t ext4 /dev/block/stl10 /dbdata ; then
 fi
 
 # format cache if not ext4
-if ! /tmp/busybox mount -t ext4 /dev/block/stl11 /cache ; then
+if ! /tmp/busybox mount -t ext4 /dev/block/mmcblk0p7 /cache ; then
     /tmp/busybox umount /cache
-    /tmp/make_ext4fs -b 4096 -g 32768 -i 8192 -I 256 -a /data /dev/block/stl11
+    /tmp/make_ext4fs -b 4096 -g 32768 -i 8192 -I 256 -a /data /dev/block/mmcblk0p7
 fi
 
 # format data if not ext4
-if ! /tmp/busybox mount -t ext4 /dev/block/mmcblk0p3  /data ; then
+if ! /tmp/busybox mount -t ext4 /dev/block/mmcblk0p9  /data ; then
     /tmp/busybox umount /data
-    /tmp/make_ext4fs -b 4096 -g 32768 -i 8192 -I 256 -a /data /dev/block/mmcblk0p3
+    /tmp/make_ext4fs -b 4096 -g 32768 -i 8192 -I 256 -a /data /dev/block/mmcblk0p9
 fi
 
 # unmount everything
