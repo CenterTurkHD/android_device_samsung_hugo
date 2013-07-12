@@ -3,8 +3,8 @@ LOCAL_PATH := $(call my-dir)
 MASTER_BOOTSTRAP := $(PRODUCT_OUT)/bootstrap.cpio.gz
 $(MASTER_BOOTSTRAP): $(INSTALLED_RAMDISK_TARGET) $(recovery_ramdisk) $(HOST_OUT)/bin/mkbootfs $(PRODUCT_OUT)/utilities/busybox
 	$(call pretty,"Bootstrap: $@")
-	cp -r device/samsung/galaxysl/bootstrap $(PRODUCT_OUT)
-	cp -r device/samsung/galaxysl/bootstrap.sh $(PRODUCT_OUT)
+	cp -r device/samsung/hugo/bootstrap $(PRODUCT_OUT)
+	cp -r device/samsung/hugo/bootstrap.sh $(PRODUCT_OUT)
 	./$(PRODUCT_OUT)/bootstrap.sh
 
 INSTALLED_BOOTIMAGE_TARGET := $(PRODUCT_OUT)/boot.img
