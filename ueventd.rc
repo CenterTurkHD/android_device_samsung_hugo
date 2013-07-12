@@ -53,7 +53,6 @@
 /dev/msm_pcm_ctl*         0660   system     audio
 /dev/msm_snd*             0660   system     audio
 /dev/msm_mp3*             0660   system     audio
-/dev/msm_aac*             0660   system     audio
 /dev/audience_a1026*      0660   system     audio
 /dev/tpa2018d1*           0660   system     audio
 /dev/msm_audpre           0660   system     audio
@@ -66,7 +65,6 @@
 /dev/snd/mixer            0660   system     audio
 /dev/smd0                 0640   radio      radio
 /dev/qemu_trace           0666   system     system
-/dev/qemu_pipe            0666   system     system
 /dev/qmi                  0640   radio      radio
 /dev/qmi0                 0640   radio      radio
 /dev/qmi1                 0640   radio      radio
@@ -77,13 +75,18 @@
 # CDMA radio interface MUX
 /dev/ts0710mux*           0640   radio      radio
 /dev/ppp                  0660   radio      vpn
-/dev/tun                  0640   vpn        vpn
+/dev/tun                  0660   vpn        vpn
 
 # sysfs properties
 /sys/devices/virtual/input/input*   enable      0660  root   input
 /sys/devices/virtual/input/input*   poll_delay  0660  root   input
-
-# video encoder on 720p-enabled 8k targets
-/dev/pmem_venc            0660   system     audio
-
 /sys/devices/virtual/usb_composite/*   enable      0664  root   system
+
+#LSI
+/dev/pvrsrvkm             0666   system     system
+/dev/video0               0660   system     camera
+/dev/video1               0660   system     camera
+/dev/video2               0660   system     camera
+/dev/s3c-jpg              0660   system     camera
+/dev/s3c-mem              0660   system     system
+/dev/s3c-mfc              0660   system     graphics
