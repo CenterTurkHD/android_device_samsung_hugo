@@ -1,3 +1,7 @@
+## Vold 2.0 Generic fstab
+## - San Mehat (san@android.com)
+## 
+
 #######################
 ## Regular device mount
 ##
@@ -8,9 +12,21 @@
 ## <sysfs_path> - List of sysfs paths to source devices
 ######################
 
+# sdcard mount for the P1
 # internal sdcard
-dev_mount emmc /mnt/emmc 1 /devices/platform/mmci-omap-hs.1/mmc_host/mmc0
+{
+	ums_path = /sys/devices/platform/usb_mass_storage/lun0/file
+	asec = disable
+	discard = enable
+	mbr_policy = skip
+}
+dev_mount sdcard /mnt/sdcard 10 /devices/platform/mmci-omap-hs.1/mmc_host/mmc0
 
 # externel sdcard
-dev_mount sdcard /mnt/sdcard auto /devices/platform/mmci-omap-hs.0/mmc_host/mmc1
-
+{
+	ums_path = /sys/devices/platform/usb_mass_storage/lun1/file
+	asec = enable
+	mbr_policy = overwrite
+}
+dev_mount sdcard1 /mnt/sdcard/external_sd auto /devices/platform/mmci-omap-hs.0/mmc_host/mmc1
+#end line ## keep this line
